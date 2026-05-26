@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- 2026-05-26 update: portrait reflow at <=700 px (mobile stack of cards under each stage), -->
+  <!-- pH labels relocated to inlet/outlet (5.8 / 7.2, no intermediates), CO2 card centered above its F-V.-F. -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scene 8 &mdash; Inside the filter hall | Niederrhein nickel project</title>
@@ -58,10 +60,11 @@
       transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
       will-change: opacity;
     }
-    /* Photograph layer — container's aspect ratio is set to match the photo,
-       so cover fills exactly with no cropping and no letterbox. */
+    /* Photograph layer — container aspect is 1.146 (matches viewBox 1100/960),
+       photo aspect is 1.40, so `contain` shows the full photograph with a small
+       letterbox (~87 px top & bottom) in the off-white container background. */
     .photo-layer {
-      object-fit: cover; object-position: center center;
+      object-fit: contain; object-position: center center;
       opacity: 1;
     }
     .photo-layer.crossfaded { opacity: 0; }
@@ -81,8 +84,12 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     .train-anno strong { font-weight: 600; font-size: 13px; }
-    .train-anno-left  { top: 8%;  left: 10%; }
-    .train-anno-right { top: 8%;  right: 10%; }
+    /* Pills sit 14 % from the top of the stage-container. With the photograph at
+       object-fit: contain inside the 1.146-aspect container, the photo occupies
+       y ≈ 9 % to ≈ 91 % of the container — so 14 % places the pills cleanly INSIDE
+       the photo top edge (~5 % into the photo), not on the empty letterbox above. */
+    .train-anno-left  { top: 14%; left: 10%; }
+    .train-anno-right { top: 14%; right: 10%; }
     /* The schematic SVG layer fades in during cross-fade */
     .schematic-layer {
       background: #fbfbfd;
@@ -90,8 +97,13 @@
     }
     .schematic-layer.visible { opacity: 1; }
     /* Photo caption */
+    /* Photo caption: positioned ABOVE the photo/letterbox boundary so the white
+       caption text (with drop-shadow) lands on the dark photograph and stays
+       readable. With the 1.146-aspect container and a 1.40-aspect photo at
+       object-fit: contain, the bottom letterbox is ~9% of container height; a
+       `bottom: 11%` places the caption ~2% inside the photo above the boundary. */
     .photo-caption {
-      position: absolute; bottom: 16px; left: 18px; right: 18px;
+      position: absolute; bottom: 11%; left: 18px; right: 18px;
       color: #fff; font-size: 13px; line-height: 1.5;
       text-shadow: 0 1px 3px rgba(0,0,0,0.7);
       opacity: 0; transform: translateY(8px);
@@ -244,9 +256,29 @@
     .ni-bar-label {
       font-weight: 600; color: #1d1d1f;
     }
+    /* Status pill (replaces the µg/L readout). Renders "above 20 µg/L TrinkwV limit"
+       in vermillion ink before treatment, then "below 20 µg/L TrinkwV limit" in green
+       ink at the narrative payoff. No specific concentration values asserted. */
     .ni-bar-readout {
-      font-family: "SF Mono", "Menlo", monospace; color: var(--nickel);
-      font-weight: 600;
+      font-family: "SF Mono", "Menlo", monospace;
+      font-size: 12px; font-weight: 600;
+    }
+    .ni-status-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+      transition: opacity 400ms ease;
+    }
+    .ni-status-pill.is-above {
+      background: #fdecd6;
+      color: #8a3a00;
+      border: 1px solid #f0c391;
+    }
+    .ni-status-pill.is-below {
+      background: #e0f3e8;
+      color: #006d4f;
+      border: 1px solid #9bd8b8;
     }
     .ni-bar-track {
       position: relative;
@@ -255,11 +287,12 @@
       border: 1px solid #e0e0e5;
       border-radius: 11px;
       overflow: visible;
+      margin-top: 10px;  /* threshold dash is on the track; floater label removed */
     }
     .ni-bar-fill {
       position: absolute;
       left: 0; top: 0; bottom: 0;
-      width: 91.7%;  /* 55 µg/L / 60 µg/L scale */
+      width: 80%;  /* visual schematic: bar starts well above the 33.33% threshold */
       background: linear-gradient(90deg, var(--nickel) 0%, #b94d00 100%);
       border-radius: 11px 0 0 11px;
       transition: width 800ms cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -270,7 +303,7 @@
     }
     .ni-bar-threshold {
       position: absolute;
-      left: 33.33%;  /* 20 µg/L / 60 µg/L scale */
+      left: 33.33%;  /* 20 µg/L on the visual scale; the only sourced anchor */
       top: -6px; bottom: -6px;
       width: 0;
       border-left: 2px dashed #1d1d1f;
@@ -281,13 +314,13 @@
     .ni-bar-threshold.is-visible {
       opacity: 1;
     }
+    /* The dashed threshold line stands on its own. The "20 µg/L drinking-water
+       limit (TrinkwV)" caption sits below the track inside .ni-bar-scale, so a second
+       floater above the line would duplicate the same label AND collide with the
+       header title at narrow widths. Pseudo-element kept (empty) only so a future
+       maintainer can reintroduce a label without touching the track CSS. */
     .ni-bar-threshold::before {
-      content: "20 µg/L limit";
-      position: absolute;
-      left: 5px; top: -16px;
-      font-size: 10px; font-weight: 600;
-      color: #1d1d1f;
-      white-space: nowrap;
+      content: "";
     }
     .ni-bar-scale {
       display: flex; justify-content: space-between;
@@ -296,39 +329,15 @@
     }
 
     /* =====================================================================
-       pH badge — small floating pill that updates pH through stages.
-       Position: absolutely placed inside .stage-container, near the
-       TB1 outlet pipe so the reader associates pH with the treated water. */
-    .ph-badge {
-      position: absolute;
-      right: 4%; top: 38%;
-      padding: 5px 12px;
-      background: #fff;
-      border: 1px solid #d2d2d7;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      font-size: 12px; font-weight: 600;
-      color: #1d1d1f;
-      opacity: 0;
-      transform: translateY(-4px);
-      transition: opacity 500ms ease, transform 500ms ease, background 400ms ease, border-color 400ms ease;
-      z-index: 9;
-      pointer-events: none;
-    }
-    .ph-badge.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .ph-badge .ph-value {
-      font-family: "SF Mono", "Menlo", monospace;
-      color: var(--breyell);
-      margin-left: 4px;
-    }
-    .ph-badge.has-crossed {
-      background: #effaf3;
-      border-color: var(--calcium);
-    }
-    .ph-badge.has-crossed .ph-value { color: var(--calcium); }
+       pH labels are now STATIC SVG <text> elements placed in the schematic.
+       pH 5.8 sits at each raw-water inlet (acidic); pH 7.2 sits at the
+       Sammelbecken outlet (treated). No intermediate values; no animation. */
+    .ph-tag-bg { fill: #fff; stroke: #d2d2d7; stroke-width: 1; }
+    .ph-tag-bg-low  { fill: #fff7ee; stroke: #e3b489; }
+    .ph-tag-bg-high { fill: #effaf3; stroke: #9bd8b8; }
+    .ph-tag-text { font-family: "SF Mono", "Menlo", monospace; font-weight: 700; font-size: 12px; }
+    .ph-tag-text-low  { fill: #b94d00; }
+    .ph-tag-text-high { fill: #009E73; }
 
     /* =====================================================================
        One-shot glow on the two Ni²⁺ capture cards when they appear.
@@ -398,8 +407,144 @@
     @media (max-width: 720px) {
       .scene { padding: 48px 20px 40px; }
       .train-anno { font-size: 10px; padding: 5px 9px; }
-      .photo-caption { font-size: 11.5px; bottom: 10px; left: 12px; right: 12px; }
+      .photo-caption { font-size: 11.5px; bottom: 11%; left: 12px; right: 12px; }
     }
+
+    /* =====================================================================
+       MOBILE-FLOW — portrait reflow at <= 700 px wide.
+       Above 700 px: desktop SVG schematic is shown; .mobile-flow is hidden.
+       At or below 700 px: SVG schematic is hidden, .mobile-flow takes over
+       with HTML equation cards stacked vertically under each treatment
+       stage (Vorfilter, Fall-Verdüsungs-Filter, Sammelbecken). The same
+       JS setVisible() finds the .svg-anim.chem-* classes on both desktop
+       SVG cards and mobile HTML cards, so the animation timing is shared. */
+    .mobile-flow { display: none; }
+
+    @media (max-width: 700px) {
+      .scene { padding: 40px 16px 32px; }
+      h1 { font-size: clamp(22px, 6vw, 28px); }
+      .lead { font-size: clamp(14px, 3.6vw, 16px); }
+      .viewport { display: none; }     /* hides stage-container + stage-meta + controls in one shot */
+      .mobile-flow {
+        display: block;
+        margin-top: 18px;
+      }
+      .mobile-flow .m-train {
+        background: #ffffff;
+        border: 1px solid #ebebef;
+        border-radius: 14px;
+        padding: 14px 14px 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      }
+      .mobile-flow .m-train.m-train-tb1 { border-left: 4px solid var(--breyell); }
+      .mobile-flow .m-train.m-train-tb2 { border-left: 4px solid var(--kald);    }
+      .mobile-flow .m-train-title {
+        font-size: 13px; font-weight: 700;
+        margin: 0 0 12px;
+        color: #1d1d1f;
+        text-transform: uppercase; letter-spacing: 0.03em;
+      }
+      .mobile-flow .m-train.m-train-tb1 .m-train-title { color: var(--breyell); }
+      .mobile-flow .m-train.m-train-tb2 .m-train-title { color: var(--kald);    }
+
+      .mobile-flow .m-inlet-row {
+        display: flex; align-items: center; justify-content: space-between;
+        background: #fff7ee;
+        border: 1px solid #f3d4b3;
+        border-radius: 10px;
+        padding: 8px 12px;
+        margin-bottom: 12px;
+        font-size: 12px;
+      }
+      .mobile-flow .m-inlet-row .m-inlet-label {
+        color: #6e6e73;
+      }
+      .mobile-flow .m-ph-tag {
+        font-family: "SF Mono", "Menlo", monospace;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 3px 9px;
+        border-radius: 10px;
+      }
+      .mobile-flow .m-ph-low  { background: #fff;       color: #b94d00; border: 1px solid #e3b489; }
+      .mobile-flow .m-ph-high { background: #effaf3;    color: #006d4f; border: 1px solid #9bd8b8; }
+
+      .mobile-flow .m-stage {
+        margin-bottom: 14px;
+      }
+      .mobile-flow .m-stage:last-child { margin-bottom: 0; }
+      .mobile-flow .m-stage-header {
+        display: flex; align-items: baseline; gap: 8px;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #ececef;
+      }
+      .mobile-flow .m-stage-num {
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 11px; font-weight: 700;
+        color: #6e6e73;
+      }
+      .mobile-flow .m-stage-title {
+        font-size: 13px; font-weight: 600;
+        color: #1d1d1f;
+      }
+      .mobile-flow .m-stage-sub {
+        font-size: 11px; color: #6e6e73; font-style: italic;
+      }
+
+      /* Mobile cards reuse the .svg-anim + .chem-* class names so the JS
+         setVisible() driver toggles them at the same instant it toggles the
+         desktop SVG cards. The styling adapts to the HTML rather than SVG
+         foreignObject context. */
+      .mobile-flow .svg-anim {
+        display: block;
+        margin-bottom: 9px;
+        transform: scale(0.985);
+        transform-origin: top left;
+      }
+      .mobile-flow .svg-anim:last-child { margin-bottom: 0; }
+      .mobile-flow .svg-anim.is-visible { transform: scale(1); }
+      .mobile-flow .eq-card {
+        font-size: 12.5px;
+        padding: 9px 12px;
+        line-height: 1.45;
+      }
+      .mobile-flow .eq-title { font-size: 10.5px; }
+      .mobile-flow .eq-body  { font-size: 13px; }
+      .mobile-flow .eq-note  { font-size: 11px; }
+
+      .mobile-flow .m-outlet {
+        background: #effaf3;
+        border: 1px solid #9bd8b8;
+        border-radius: 12px;
+        padding: 14px;
+        text-align: center;
+        margin-bottom: 14px;
+      }
+      .mobile-flow .m-outlet-title {
+        font-size: 13px; font-weight: 600;
+        margin: 0 0 8px;
+        color: #006d4f;
+      }
+      .mobile-flow .m-outlet .m-ph-tag {
+        display: inline-block;
+        font-size: 14px;
+        padding: 5px 14px;
+        margin: 2px 0 6px;
+      }
+      .mobile-flow .m-outlet-note {
+        font-size: 11.5px;
+        color: #1d1d1f;
+        margin: 4px 0 0;
+        line-height: 1.4;
+      }
+      /* Ni²⁺ bar stays as-is on mobile — it's already a fluid HTML element. */
+      .ni-bar { margin-top: 10px; }
+      .ni-bar-header { flex-direction: column; align-items: stretch; gap: 2px; }
+      .ni-bar-readout { align-self: flex-end; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .layer, .svg-anim, .train-annotations, .photo-caption {
         transition: opacity 0.01s !important;
@@ -432,10 +577,6 @@
             <strong>Train TB 1</strong><br>vessels 1 &rarr; 2
           </div>
         </div>
-
-        <!-- pH badge: a single floating pill that updates pH through the stages.
-             Raw water enters at pH 5.8 and rises to pH 7.2 after Magnodol + CaCO3. -->
-        <div class="ph-badge" id="phBadge">pH<span class="ph-value" id="phValue">&nbsp;5.8</span></div>
 
         <!-- Layer C: schematic SVG -->
         <svg id="schematicLayer" class="layer schematic-layer"
@@ -504,6 +645,12 @@
                   marker-end="url(#arrowBlue)"/>
             <text x="100" y="165" font-size="10.5" text-anchor="middle" fill="#6e6e73"
                   class="svg-anim train-base">raw water</text>
+
+            <!-- Static pH label at TB 1 raw-water inlet: acidic raw water entering the Vorfilter. -->
+            <g class="svg-anim train-base">
+              <rect class="ph-tag-bg ph-tag-bg-low" x="60" y="195" width="80" height="22" rx="11"/>
+              <text class="ph-tag-text ph-tag-text-low" x="100" y="211" text-anchor="middle">pH 5.8</text>
+            </g>
 
             <!-- Vorfilter (Druckfilter) cylinder -->
             <g class="svg-anim train-base">
@@ -586,6 +733,12 @@
             <text x="100" y="605" font-size="10.5" text-anchor="middle" fill="#6e6e73"
                   class="svg-anim train-base">raw water</text>
 
+            <!-- Static pH label at TB 2 raw-water inlet: identical acidic raw water as TB 1. -->
+            <g class="svg-anim train-base">
+              <rect class="ph-tag-bg ph-tag-bg-low" x="60" y="635" width="80" height="22" rx="11"/>
+              <text class="ph-tag-text ph-tag-text-low" x="100" y="651" text-anchor="middle">pH 5.8</text>
+            </g>
+
             <!-- Vorfilter (Druckfilter) cylinder -->
             <g class="svg-anim train-base">
               <ellipse cx="240" cy="540" rx="68" ry="14" fill="url(#gradVorfilter)"/>
@@ -648,6 +801,11 @@
             <!-- Outlet from basin -->
             <path d="M 1054 380 L 1090 380" fill="none" stroke="#0072B2" stroke-width="6"
                   stroke-linecap="round" marker-end="url(#arrowBlue)"/>
+            <!-- pH 7.2 at outlet: animated reveal AFTER all 8 chemistry cards (stage 11). -->
+            <g class="svg-anim chem-ph-out">
+              <rect class="ph-tag-bg ph-tag-bg-high" x="1010" y="346" width="80" height="22" rx="11"/>
+              <text class="ph-tag-text ph-tag-text-high" x="1050" y="362" text-anchor="middle">pH 7.2</text>
+            </g>
             <text x="930" y="290" font-size="14" font-weight="600" text-anchor="middle" fill="#1d1d1f">
               Sammelbecken
             </text>
@@ -679,7 +837,7 @@
 
           <g id="chemMnVor">
             <!-- Card 2: partial MnO2 precipitation — Gl. 16 — NEW -->
-            <foreignObject class="svg-anim chem-mn-vor" x="20" y="395" width="320" height="100">
+            <foreignObject class="svg-anim chem-mn-vor" x="20" y="395" width="320" height="115">
               <div xmlns="http://www.w3.org/1999/xhtml" class="eq-card mn">
                 <div class="eq-title">Partial manganese(IV) oxide precipitation &nbsp;&middot;&nbsp; <span class="marker">²</span></div>
                 <div class="eq-body" style="margin-top: 4px;">
@@ -696,8 +854,11 @@
 
           <!-- =============== CHEMISTRY OVERLAYS — FALL-VERDÜSUNGS-FILTER (three layers) =============== -->
           <g id="chemCO2">
-            <!-- CO2 release card — slim, bright, positioned right above the spray nozzle ring -->
-            <foreignObject class="svg-anim chem-co2" x="385" y="10" width="220" height="80">
+            <!-- CO2 stripping card — centered DIRECTLY above the TB1 F-V.-F. spray nozzle ring.
+                 (TB1 F-V.-F. vessel spans x=462-618, center x=540. Card width 220, so x=430 centers it.)
+                 Previously at x=385 which sat horizontally in the gap between TB1 Vorfilter and F-V.-F.
+                 and read as "between" — now reads as "above THIS filter". -->
+            <foreignObject class="svg-anim chem-co2" x="430" y="10" width="220" height="80">
               <div xmlns="http://www.w3.org/1999/xhtml" class="eq-card co2 bright">
                 <div class="eq-title">CO<sub>2</sub> stripping &nbsp;&middot;&nbsp; <span class="marker">⁵</span></div>
                 <div class="eq-body">
@@ -785,7 +946,7 @@
             </foreignObject>
 
             <!-- TB 2 Vorfilter — Manganese oxidation half-reaction (Eq. 14, mechanism) -->
-            <foreignObject class="svg-anim chem-mn-half" x="20" y="845" width="320" height="95">
+            <foreignObject class="svg-anim chem-mn-half" x="20" y="840" width="320" height="115">
               <div xmlns="http://www.w3.org/1999/xhtml" class="eq-card mn-half">
                 <div class="eq-title">Manganese(II) oxidation (electron transfer) &nbsp;&middot;&nbsp; <span class="marker">⁴</span></div>
                 <div class="eq-body">
@@ -819,22 +980,184 @@
     </div>
 
     <!-- =====================================================================
-         Ni²⁺ concentration bar — shrinks as treatment removes Ni²⁺ from the water.
-         Raw water ~55 µg/L → after CaCO3 capture ~30 µg/L → after residual MnO2 ~12 µg/L.
-         The 20 µg/L dashed threshold becomes visible once the bar crosses below it. -->
+         MOBILE-FLOW — shown only at viewports <= 700 px.
+         Two filter trains stack vertically; each train shows its treatment
+         stages and the equation cards that belong to them. Cards re-use the
+         desktop .svg-anim + .chem-* class names so the JS setVisible() driver
+         reveals them at the same instant as the desktop SVG cards. -->
+    <div class="mobile-flow" aria-hidden="false">
+
+      <!-- ============ TRAIN TB 1 ============ -->
+      <section class="m-train m-train-tb1">
+        <h3 class="m-train-title">Train TB 1 &middot; vessels 1 &rarr; 2</h3>
+
+        <div class="m-inlet-row">
+          <span class="m-inlet-label">&rarr; raw water enters</span>
+          <span class="m-ph-tag m-ph-low">pH 5.8</span>
+        </div>
+
+        <div class="m-stage">
+          <div class="m-stage-header">
+            <span class="m-stage-num">①</span>
+            <span class="m-stage-title">Vorfilter / Druckfilter</span>
+            <span class="m-stage-sub">iron removal</span>
+          </div>
+          <!-- Card ¹ Fe(OH)3 precipitation -->
+          <div class="svg-anim chem-iron">
+            <div class="eq-card iron">
+              <div class="eq-title">Iron(III) hydroxide precipitation &nbsp;&middot;&nbsp; <span class="marker">¹</span></div>
+              <div class="eq-body">
+                Fe<sup>2+</sup> + &frac14;&nbsp;O<sub>2</sub> + 5/2&nbsp;H<sub>2</sub>O
+                &rarr; Fe(OH)<sub>3</sub>&darr; + 2&nbsp;H<sup>+</sup>
+              </div>
+              <div class="eq-note"><em>orange flocs retained on the Druckfilter gravel bed</em></div>
+            </div>
+          </div>
+          <!-- Card ² Partial MnO2 precipitation -->
+          <div class="svg-anim chem-mn-vor">
+            <div class="eq-card mn-vor">
+              <div class="eq-title">Partial manganese(IV) oxide precipitation &nbsp;&middot;&nbsp; <span class="marker">²</span></div>
+              <div class="eq-body">
+                Mn<sup>2+</sup> + &frac12;&nbsp;O<sub>2</sub> + H<sub>2</sub>O
+                &rarr; MnO<sub>2</sub>&darr; + 2&nbsp;H<sup>+</sup>
+              </div>
+              <div class="eq-note"><em>autocatalytic on existing MnO<sub>2</sub> grain coatings &mdash; iron must clear first (Wisotzky, 2021)</em></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="m-stage">
+          <div class="m-stage-header">
+            <span class="m-stage-num">②</span>
+            <span class="m-stage-title">Fall-Verd&uuml;sungs-Filter</span>
+            <span class="m-stage-sub">spray-aerated open filter &middot; de-acidification</span>
+          </div>
+          <!-- Card ⁵ CO2 stripping -->
+          <div class="svg-anim chem-co2">
+            <div class="eq-card co2 bright">
+              <div class="eq-title">CO<sub>2</sub> stripping &nbsp;&middot;&nbsp; <span class="marker">⁵</span></div>
+              <div class="eq-body">CO<sub>2</sub>(aq) &harr; CO<sub>2</sub>(g)&uarr;</div>
+              <div class="eq-note">spray-aerated nozzle ring</div>
+            </div>
+          </div>
+          <!-- Card ⁶ Magnodol dissolution -->
+          <div class="svg-anim chem-dol">
+            <div class="eq-card dol">
+              <div class="eq-title">Magnodol dissolution (chemical de-acidification) &nbsp;&middot;&nbsp; <span class="marker">⁶</span></div>
+              <div class="eq-body">
+                CaCO<sub>3</sub>&middot;MgO + H<sub>2</sub>O + 3&nbsp;H<sub>2</sub>CO<sub>3</sub> &harr;<br>
+                Ca<sup>2+</sup> + Mg<sup>2+</sup> + 4&nbsp;HCO<sub>3</sub><sup>&minus;</sup> + 2&nbsp;H<sub>2</sub>O
+              </div>
+              <div class="eq-note"><em>via Mg(OH)<sub>2</sub> intermediate &mdash; raises pH past 6.5</em></div>
+            </div>
+          </div>
+          <!-- Card ⁷ Calcite + Ni capture -->
+          <div class="svg-anim chem-cap">
+            <div class="eq-card cap">
+              <div class="eq-title">Calcite reprecipitation + Ni<sup>2+</sup> capture &nbsp;&middot;&nbsp; <span class="marker">⁷</span></div>
+              <div class="eq-body">
+                2&nbsp;HCO<sub>3</sub><sup>&minus;</sup> + 2&nbsp;Ca<sup>2+</sup> + Mg(OH)<sub>2</sub> &harr;<br>
+                2&nbsp;CaCO<sub>3</sub>&darr; + 2&nbsp;H<sub>2</sub>O + Mg<sup>2+</sup>
+              </div>
+              <div class="eq-note"><em>Ni<sup>2+</sup> co-incorporation site #1 &mdash; r&sup2;&nbsp;=&nbsp;0.86 (Ni&ndash;Ca)</em></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TRAIN TB 2 ============ -->
+      <section class="m-train m-train-tb2">
+        <h3 class="m-train-title">Train TB 2 &middot; vessels 3 &rarr; 4</h3>
+
+        <div class="m-inlet-row">
+          <span class="m-inlet-label">&rarr; raw water enters</span>
+          <span class="m-ph-tag m-ph-low">pH 5.8</span>
+        </div>
+
+        <div class="m-stage">
+          <div class="m-stage-header">
+            <span class="m-stage-num">①</span>
+            <span class="m-stage-title">Vorfilter / Druckfilter</span>
+            <span class="m-stage-sub">underlying half-reaction mechanisms</span>
+          </div>
+          <!-- Card ³ Fe(II) oxidation half-reaction -->
+          <div class="svg-anim chem-fe-half">
+            <div class="eq-card iron-half">
+              <div class="eq-title">Iron(II) oxidation (electron transfer) &nbsp;&middot;&nbsp; <span class="marker">³</span></div>
+              <div class="eq-body">
+                Fe<sup>2+</sup> + &frac14;&nbsp;O<sub>2</sub> + H<sup>+</sup>
+                &rarr; Fe<sup>3+</sup> + &frac12;&nbsp;H<sub>2</sub>O
+              </div>
+              <div class="eq-note">half-reaction driving the Fe(OH)<sub>3</sub> precipitation in the Vorfilter</div>
+            </div>
+          </div>
+          <!-- Card ⁴ Mn(II) oxidation half-reaction -->
+          <div class="svg-anim chem-mn-half">
+            <div class="eq-card mn-half">
+              <div class="eq-title">Manganese(II) oxidation (electron transfer) &nbsp;&middot;&nbsp; <span class="marker">⁴</span></div>
+              <div class="eq-body">
+                Mn<sup>2+</sup> + &frac12;&nbsp;O<sub>2</sub> + 2&nbsp;H<sup>+</sup>
+                &rarr; Mn<sup>4+</sup> + H<sub>2</sub>O
+              </div>
+              <div class="eq-note">half-reaction driving partial MnO<sub>2</sub> in the Vorfilter and the residual MnO<sub>2</sub> capture in the F-V.-F.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="m-stage">
+          <div class="m-stage-header">
+            <span class="m-stage-num">②</span>
+            <span class="m-stage-title">Fall-Verd&uuml;sungs-Filter</span>
+            <span class="m-stage-sub">residual manganese removal</span>
+          </div>
+          <!-- Card ⁸ Residual MnO2 + Ni capture -->
+          <div class="svg-anim chem-cap-mn">
+            <div class="eq-card cap-mn">
+              <div class="eq-title">Residual MnO<sub>2</sub> + Ni<sup>2+</sup> capture (Rest-Entmanganung) &nbsp;&middot;&nbsp; <span class="marker">⁸</span></div>
+              <div class="eq-body">
+                Mn<sup>2+</sup> + &frac12;&nbsp;O<sub>2</sub> + H<sub>2</sub>O &harr;
+                MnO<sub>2</sub>&darr; + 2&nbsp;H<sup>+</sup>
+              </div>
+              <div class="eq-note"><em>Ni<sup>2+</sup> co-incorporation site #2 &mdash; r&sup2;&nbsp;=&nbsp;0.66 (Ni&ndash;Mn)</em></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ OUTLET ============ -->
+      <section class="m-outlet">
+        <p class="m-outlet-title">&rarr; Sammelbecken (clean-water reservoir)</p>
+        <span class="m-ph-tag m-ph-high svg-anim chem-ph-out">pH 7.2</span>
+        <p class="m-outlet-note">Treated water leaving the plant &middot; nickel limit (20&nbsp;&micro;g/L) of the German Trinkwasserverordnung complied with.</p>
+      </section>
+
+    </div>
+
+    <!-- ===================================================================
+         Ni²⁺ schematic bar
+         ===================================================================
+         This bar visualizes the qualitative transition documented in the
+         sources: raw water at Wasserwerk Breyell carries Ni²⁺ above the
+         20 µg/L TVO limit; treated water leaving the plant is below it
+         (Kandemiroglu, 2011, §1.1; Wisotzky, Kandemiroglu & Plassmann,
+         2012). No specific µg/L value is asserted by the bar — the bar
+         fill and threshold line carry the story; the caption carries the
+         sourced numbers. -->
     <div class="ni-bar" id="niBar">
       <div class="ni-bar-header">
-        <span class="ni-bar-label">Ni²⁺ concentration through the plant</span>
-        <span class="ni-bar-readout"><span id="niBarValue">55</span>&nbsp;µg/L</span>
+        <span class="ni-bar-label">Ni²⁺ through the treatment</span>
+        <span class="ni-bar-readout" id="niBarStatus">
+          <span class="ni-status-pill is-above">above 20&nbsp;µg/L TrinkwV limit</span>
+        </span>
       </div>
       <div class="ni-bar-track">
         <div class="ni-bar-threshold" id="niBarThreshold"></div>
         <div class="ni-bar-fill" id="niBarFill"></div>
       </div>
       <div class="ni-bar-scale">
-        <span>0 µg/L (raw)</span>
-        <span style="text-align:center;">20 µg/L drinking-water limit</span>
-        <span>60 µg/L (max scale)</span>
+        <span>raw water</span>
+        <span style="text-align:center;">20 µg/L drinking-water limit (TrinkwV)</span>
+        <span>treated water</span>
       </div>
     </div>
 
@@ -911,43 +1234,63 @@
       var btnPlay           = document.getElementById('btnPlay');
       var stageProgress     = document.getElementById('stageProgress');
 
+      // train-base stays SVG-scoped (vessels, pipes, pH static labels live only inside the SVG).
+      // The chem-* card queries are now DOCUMENT-WIDE so the same setVisible() driver
+      // toggles both desktop SVG foreignObject cards AND mobile HTML stack cards in unison.
       var trainBaseElems = schematicLayer.querySelectorAll('.train-base');
-      var chemIronElems  = schematicLayer.querySelectorAll('.chem-iron');
-      var chemMnVorElems = schematicLayer.querySelectorAll('.chem-mn-vor');
-      var chemCO2Elems   = schematicLayer.querySelectorAll('.chem-co2');
-      var chemDolElems   = schematicLayer.querySelectorAll('.chem-dol');
-      var chemCapElems   = schematicLayer.querySelectorAll('.chem-cap');
-      var chemCapMnElems = schematicLayer.querySelectorAll('.chem-cap-mn');
-      var chemFeHalfElems = schematicLayer.querySelectorAll('.chem-fe-half');
-      var chemMnHalfElems = schematicLayer.querySelectorAll('.chem-mn-half');
+      var chemIronElems  = document.querySelectorAll('.chem-iron');
+      var chemMnVorElems = document.querySelectorAll('.chem-mn-vor');
+      var chemCO2Elems   = document.querySelectorAll('.chem-co2');
+      var chemDolElems   = document.querySelectorAll('.chem-dol');
+      var chemCapElems   = document.querySelectorAll('.chem-cap');
+      var chemCapMnElems = document.querySelectorAll('.chem-cap-mn');
+      var chemFeHalfElems = document.querySelectorAll('.chem-fe-half');
+      var chemMnHalfElems = document.querySelectorAll('.chem-mn-half');
+      // pH 7.2 at outlet — animated reveal AFTER all eight chemistry cards (stage 11).
+      var chemPhOutElems  = document.querySelectorAll('.chem-ph-out');
 
       // New narrative-overlay refs (Ni²⁺ bar, pH badge, flow pulse)
       var niBarFill      = document.getElementById('niBarFill');
       var niBarThreshold = document.getElementById('niBarThreshold');
-      var niBarValue     = document.getElementById('niBarValue');
-      var phBadge        = document.getElementById('phBadge');
-      var phValue        = document.getElementById('phValue');
+      var niBarStatus    = document.getElementById('niBarStatus');
+      // pH is now displayed as STATIC SVG <text> labels (one at each Vorfilter
+      // inlet, one at the Sammelbecken outlet). No JS update needed.
       var t1PulseMotion  = document.getElementById('t1PulseMotion');
       var t1Pulse        = document.getElementById('t1Pulse');
 
-      // Helpers — update Ni²⁺ bar (concentration in µg/L) and pH badge
+      // Helpers — update Ni²⁺ bar (concentration in µg/L). The pH helper is
+      // retained as a no-op so any legacy callsites that still reference it
+      // (or downstream code) do not throw.
+      // setNi(ugPerL [, _unusedDisplayOverride])
+      // The bar carries the QUALITATIVE story: raw water above the 20 µg/L TVO
+      // limit → treated water below it. The only source supports a qualitative
+       // claim ("Trinkwasser sicher unter 20 µg/L", Wisotzky, Kandemiroglu &
+      // Plassmann 2012, §1.1), so we never display a specific µg/L number for
+      // the treated water. ugPerL is used only to (a) compute a representative
+      // bar fill width, (b) toggle the status pill between "above" and "below",
+      // (c) reveal the dashed threshold line when the bar drops under it.
       function setNi(ugPerL) {
         var pct = Math.max(0, Math.min(100, (ugPerL / 60) * 100));
         if (niBarFill) niBarFill.style.width = pct + '%';
-        if (niBarValue) niBarValue.textContent = String(ugPerL);
+        if (niBarStatus) {
+          if (ugPerL < 20) {
+            niBarStatus.innerHTML =
+              '<span class="ni-status-pill is-below">below 20&nbsp;\u00b5g/L TrinkwV limit</span>';
+          } else {
+            niBarStatus.innerHTML =
+              '<span class="ni-status-pill is-above">above 20&nbsp;\u00b5g/L TrinkwV limit</span>';
+          }
+        }
         if (niBarThreshold) {
           if (ugPerL < 20) niBarThreshold.classList.add('is-visible');
           else             niBarThreshold.classList.remove('is-visible');
         }
-        if (niBarFill && ugPerL < 18) niBarFill.classList.add('is-final');
-      }
-      function setPh(value, crossed) {
-        if (phValue) phValue.textContent = '\u00a0' + value;
-        if (phBadge) {
-          phBadge.classList.add('is-visible');
-          if (crossed) phBadge.classList.add('has-crossed');
+        if (niBarFill) {
+          if (ugPerL < 18) niBarFill.classList.add('is-final');
+          else             niBarFill.classList.remove('is-final');
         }
       }
+      function setPh() { /* no-op — pH labels are static SVG text */ }
 
       var played = false;
       var timeouts = [];
@@ -986,8 +1329,10 @@
           photoCaption.classList.remove('visible');
           schematicLayer.classList.add('visible');
           setVisible(trainBaseElems, true);
-          // Initialise Ni²⁺ at raw-water level (55 µg/L) and show pH at 5.8
-          setNi(55);
+          // Initialise Ni²⁺ at the highest raw-water peak documented in the master's
+          // thesis: 61 µg/L at BTB2 (Tiefbrunnen 2, Wasserwerk Breyell) in 2004.5
+          // (thesis Abb. 1.1 = paper Bild 1, data table row 2004.5). pH 5.8 at the inlets.
+          setNi(61);
           setPh('5.8', false);
           // Fire the travelling flow pulse on the TB1 journey path
           if (t1Pulse) t1Pulse.classList.add('is-firing');
@@ -1040,21 +1385,34 @@
         }, 28500));
 
         // Stage 9 - 32.5 s: CaCO3 reprecipitation + Ni capture (marker 7, r²=0.86 Ni-Ca)
-        // First Ni capture site: Ni²⁺ drops from 55 to ~30 µg/L. pH rises to 7.2.
+        // First nickel-capture site: Ni binds into freshly precipitated CaCO3.
+        // NOTE: neither thesis nor paper reports an intermediate Ni concentration
+        // after the Druckfilter. The bar is NOT moved here; only the chemistry card
+        // appears. setPh() is a no-op (pH 7.2 is animated by chem-ph-out at stage 11).
         timeouts.push(setTimeout(function () {
           setVisible(chemCapElems, true);
-          setNi(30);
-          setPh('7.2', true);
-          stageProgress.textContent = 'stage 9 \u00b7 CaCO\u2083 + Ni\u00b2\u207a (marker \u2077) \u00b7 Ni 55 \u2192 30 \u00b5g/L';
+          stageProgress.textContent = 'stage 9 \u00b7 CaCO\u2083 + Ni\u00b2\u207a (marker \u2077) \u00b7 first capture site';
         }, 32500));
 
         // Stage 10 - 36.5 s: Residual MnO2 + Ni capture (marker 8, r²=0.66 Ni-Mn)
-        // Second Ni capture site: Ni²⁺ drops from ~30 to ~12 µg/L, crossing the 20 µg/L limit.
+        // Second nickel-capture site completes treatment. Only QUALITATIVE source
+        // claim available: paper §1.1 — "Trinkwasser sicher unter 20 µg/L". Bar
+        // drops to a sub-threshold position; readout shows "< 20" with no fabricated
+        // numeric endpoint. The 'is-final' class fires (border-radius change) and
+        // the threshold dash becomes visible (CSS class is-visible).
         timeouts.push(setTimeout(function () {
           setVisible(chemCapMnElems, true);
-          setNi(12);
-          stageProgress.textContent = 'stage 10 \u00b7 residual MnO\u2082 + Ni\u00b2\u207a (marker \u2078) \u00b7 Ni 30 \u2192 12 \u00b5g/L (under limit)';
+          setNi(10);
+          stageProgress.textContent = 'stage 10 \u00b7 residual MnO\u2082 + Ni\u00b2\u207a (marker \u2078) \u00b7 Ni below 20 \u00b5g/L limit';
         }, 36500));
+
+        // Stage 11 - 40 s: NARRATIVE PAYOFF.
+        // pH 7.2 at the Sammelbecken outlet fades in 3.5 s after the last chemistry card.
+        // Both desktop SVG label and mobile m-outlet pH tag share class .chem-ph-out.
+        timeouts.push(setTimeout(function () {
+          setVisible(chemPhOutElems, true);
+          stageProgress.textContent = 'stage 11 \u00b7 pH 7.2 at outlet \u00b7 treatment complete';
+        }, 40000));
       }
 
       function reset() {
@@ -1074,12 +1432,12 @@
         setVisible(chemCapMnElems, false);
         setVisible(chemFeHalfElems, false);
         setVisible(chemMnHalfElems, false);
-        // Reset narrative overlays
-        if (niBarFill) { niBarFill.style.width = '91.7%'; niBarFill.classList.remove('is-final'); }
-        if (niBarValue) niBarValue.textContent = '55';
+        setVisible(chemPhOutElems, false);
+        // Reset narrative overlays. setNi(61) re-applies the 61 µg/L peak (thesis
+        // Abb. 1.1 = paper Bild 1), the "above ... TrinkwV limit" pill, and clears
+        // is-final on the fill. We then explicitly hide the threshold dashed line.
+        setNi(61);
         if (niBarThreshold) niBarThreshold.classList.remove('is-visible');
-        if (phBadge) { phBadge.classList.remove('is-visible'); phBadge.classList.remove('has-crossed'); }
-        if (phValue) phValue.textContent = '\u00a05.8';
         if (t1Pulse) t1Pulse.classList.remove('is-firing');
         stageProgress.textContent = 'stage 0 \u00b7 photograph';
       }
