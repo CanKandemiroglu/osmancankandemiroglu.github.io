@@ -167,6 +167,10 @@
       position: absolute; top: 0; left: 0;
       transform-origin: top left;
       pointer-events: auto;
+      /* Keep the scale()-promoted compositing layer well-defined so WebKit doesn't
+         leave a stale/blank layer when the card's opacity is revealed (the failure
+         class that motivated leaving foreignObject). */
+      -webkit-backface-visibility: hidden; backface-visibility: hidden;
     }
     .eq-card .eq-title {
       font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
@@ -381,10 +385,10 @@
       40%  { box-shadow: 0 4px 38px rgba(204,121,167,0.65); }
       100% { box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
     }
-    .svg-anim.chem-cap.is-visible .eq-card {
+    .svg-anim.chem-cap.visible .eq-card {
       animation: glow-pulse-green 1400ms cubic-bezier(0.2,0.7,0.2,1) 1;
     }
-    .svg-anim.chem-cap-mn.is-visible .eq-card {
+    .svg-anim.chem-cap-mn.visible .eq-card {
       animation: glow-pulse-purple 1400ms cubic-bezier(0.2,0.7,0.2,1) 1;
     }
 
@@ -1475,9 +1479,18 @@
       }
 
       function setVisible(nodelist, on) {
+        // Re-place the overlay cards against the live CTM right before a reveal so a
+        // late layout settle / iOS toolbar resize can't leave them at a stale scale.
+        if (on && typeof positionOverlayCards === 'function') positionOverlayCards();
         for (var i = 0; i < nodelist.length; i++) {
-          if (on) nodelist[i].classList.add('visible');
-          else    nodelist[i].classList.remove('visible');
+          if (on) {
+            nodelist[i].classList.add('visible');
+            // Force a synchronous reflow so WebKit flushes the freshly-revealed,
+            // transform-composited layer (defends against the stale-layer mispaint).
+            void nodelist[i].offsetWidth;
+          } else {
+            nodelist[i].classList.remove('visible');
+          }
         }
       }
 
@@ -1502,6 +1515,12 @@
           trainAnnotations.classList.remove('visible');
           photoCaption.classList.remove('visible');
           schematicLayer.classList.add('visible');
+          // Re-place the cards at the exact moment the schematic becomes visible, then
+          // again after the 1.2s cross-fade transition settles. This is the only moment
+          // the user actually sees the cards, so any earlier placement against a not-yet
+          // -settled aspect-ratio box (Safari resolves this later than Blink) is corrected.
+          requestAnimationFrame(positionOverlayCards);
+          timeouts.push(setTimeout(positionOverlayCards, 1300));
           setVisible(trainBaseElems, true);
           // Initialise Ni²⁺ at the highest raw-water peak documented in the master's
           // thesis: 61 µg/L at BTB2 (Tiefbrunnen 2, Wasserwerk Breyell) in 2004.5
@@ -1687,7 +1706,7 @@
           c.style.left  = (sx - host.left) + 'px';
           c.style.top   = (sy - host.top) + 'px';
           c.style.width = w + 'px';                 // unscaled user-unit width...
-          c.style.transform = 'scale(' + scale + ')'; // ...then scaled like the SVG
+          c.style.transform = 'translateZ(0) scale(' + scale + ')'; // ...then scaled (translateZ keeps a clean WebKit layer)
         }
       }
       // Reposition whenever the stage resizes (Safari 13.1+/13.4+), on load, and on
@@ -1699,9 +1718,21 @@
       window.addEventListener('load', positionOverlayCards);
       window.addEventListener('resize', positionOverlayCards);
       window.addEventListener('orientationchange', positionOverlayCards);
-      // Belt-and-suspenders: also place once now and shortly after (fonts/layout).
-      positionOverlayCards();
+      // First placement: wait (via rAF) until the schematic has a real, settled
+      // non-zero box before measuring — Safari resolves the aspect-ratio-derived
+      // height a frame or two later than Blink, so a bare synchronous call can read
+      // a zero/half-settled box.
+      function placeWhenSized() {
+        if (!schematicLayer) return;
+        var r = schematicLayer.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2) { requestAnimationFrame(placeWhenSized); return; }
+        positionOverlayCards();
+      }
+      if (window.requestAnimationFrame) requestAnimationFrame(placeWhenSized);
+      else positionOverlayCards();
       setTimeout(positionOverlayCards, 300);
+      // Free insurance: re-place once web fonts settle (engines lacking it skip this).
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(positionOverlayCards);
     })();
   </script>
 </body>
