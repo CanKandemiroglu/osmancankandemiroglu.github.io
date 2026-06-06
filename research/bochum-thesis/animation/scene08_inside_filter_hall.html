@@ -1708,6 +1708,29 @@
           c.style.width = w + 'px';                 // unscaled user-unit width...
           c.style.transform = 'translateZ(0) scale(' + scale + ')'; // ...then scaled (translateZ keeps a clean WebKit layer)
         }
+        // Collision avoidance. Cards are anchored top-left with content-driven height,
+        // and Safari (San Francisco font) renders them a few px taller than Chrome's
+        // Arial/Consolas — enough to make a card overlap the one below it in a tight
+        // column. After placing everything, walk each x-column top-to-bottom and push
+        // any card that would overlap the previous one down by a small gap. This is
+        // engine-agnostic: whatever height each browser produces, cards never overlap.
+        var GAP = 8 * scale;
+        var byCol = {};
+        for (var j = 0; j < cards.length; j++) {
+          var key = cards[j].getAttribute('data-x');
+          (byCol[key] || (byCol[key] = [])).push(cards[j]);
+        }
+        for (var col in byCol) {
+          var group = byCol[col].slice().sort(function (a, b) {
+            return (parseFloat(a.style.top) || 0) - (parseFloat(b.style.top) || 0);
+          });
+          for (var m = 1; m < group.length; m++) {
+            var prevBottom = (parseFloat(group[m - 1].style.top) || 0) + group[m - 1].getBoundingClientRect().height;
+            if ((parseFloat(group[m].style.top) || 0) < prevBottom + GAP) {
+              group[m].style.top = (prevBottom + GAP) + 'px';
+            }
+          }
+        }
       }
       // Reposition whenever the stage resizes (Safari 13.1+/13.4+), on load, and on
       // window resize/orientation change. ResizeObserver fires once on observe(), which
