@@ -130,15 +130,24 @@
     /* Chemistry equation cards inside foreignObject */
     .eq-card {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-      background: rgba(255,255,255,0.96);
+      /* 2026-06-05 Safari fix: solid background (was rgba .96) + NO backdrop-filter.
+         backdrop-filter inside an SVG <foreignObject> is a known WebKit bug that
+         collapses/mis-paints the box on Safari (macOS + iOS) while Chromium renders
+         it fine. The card was already 96% opaque, so dropping the blur is visually
+         a no-op on Chromium and removes the crash on Safari. */
+      background: #ffffff;
       border: 1px solid var(--hairline);
       border-radius: 10px;
       padding: 8px 12px;
       font-size: 12px; line-height: 1.4;
       color: var(--ink);
       box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
+    /* 2026-06-05 Safari fix: don't let <foreignObject> clip its HTML. Safari's font
+       metrics can render the equation a few px taller than Chromium; with the default
+       clipping the bottom line gets cut ("crashing" boxes). Letting it overflow shows
+       the full card. */
+    foreignObject { overflow: visible; }
     .eq-card .eq-title {
       font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
       font-weight: 600; color: var(--muted); margin-bottom: 3px;
