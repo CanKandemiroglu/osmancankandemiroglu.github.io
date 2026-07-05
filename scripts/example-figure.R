@@ -34,10 +34,11 @@ library(ggplot2)
 library(ggspatial)
 
 # --- Bathymetry: ETOPO 2022 (15 arc-second) subset from NOAA ERDDAP ---------
-# griddap slice order is z[(south):(north)][(west):(east)].
+# griddap slice order is z[(south):stride:(north)][(west):stride:(east)].
+# stride 5 keeps the grid ≈2016 columns wide (raise for more detail).
 bathy_url <- paste0(
   "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ETOPO_2022_v1_15s.nc",
-  "?z%5B(30):(46)%5D%5B(-6):(36)%5D"
+  "?z%5B(30):5:(46)%5D%5B(-6):5:(36)%5D"
 )
 download.file(bathy_url, destfile = "bathy.nc", mode = "wb")
 
@@ -60,9 +61,10 @@ stations <- data.frame(
 p <- ggplot() +
   geom_raster(data = bathy_df, aes(x = lon, y = lat, fill = z)) +
   # cmocean "deep" — the same perceptually uniform colormap as
-  # the on-screen preview.
+  # the on-screen preview. The fill axis is elevation (deep = minimum), so the
+  # direction is inverted relative to the on-screen "reverse" toggle.
   scale_fill_gradientn(
-    colours = cmocean::cmocean("deep", direction = 1)(256),
+    colours = cmocean::cmocean("deep", direction = -1)(256),
     limits = c(-6000, 0),
     oob = scales::squish,
     name = "Elevation (m)"

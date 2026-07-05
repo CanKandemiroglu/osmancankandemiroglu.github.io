@@ -53,22 +53,15 @@ package is deliberately not used.
 
 ## Regenerating the samples
 
-The fixture lives in `core/test/scripts.test.js` (`FIXTURE`). To regenerate the
-committed samples after changing a generator, run a small Node script that calls
-both generators with that same fixture and writes the results here, e.g.:
+The shared fixture lives in `core/test/fixture.js`. After changing a
+generator, regenerate the committed samples from the repo root:
 
-```js
-import fs from 'node:fs';
-import { generatePyGMT } from '../core/src/scripts/pygmt.js';
-import { generateRScript } from '../core/src/scripts/rscript.js';
-
-const state = /* copy of FIXTURE from core/test/scripts.test.js */;
-fs.writeFileSync('scripts/example-figure.py', generatePyGMT(state));
-fs.writeFileSync('scripts/example-figure.R', generateRScript(state));
+```sh
+node scripts/dev/build-examples.mjs
 ```
 
-Then run `cd core && node --test test/scripts.test.js` — the sync test confirms
-the committed files match the generators byte-for-byte.
+Then run `cd core && npm test` — the sync test confirms the committed files
+match the generators byte-for-byte.
 
 ## Citations travel with the figure
 

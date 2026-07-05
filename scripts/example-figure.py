@@ -38,7 +38,10 @@ grid = pygmt.datasets.load_earth_relief(resolution="02m", region=region)
 fig = pygmt.Figure()
 
 # GMT >= 6 ships the cmocean colormaps natively, so the name resolves directly.
-pygmt.makecpt(cmap="deep", series=[-6000, 0])
+# The on-screen tool maps colormap position 0 to the SHALLOW end, but the CPT
+# series here runs over elevation (deep = minimum), so the direction flag is
+# inverted relative to the on-screen "reverse" toggle.
+pygmt.makecpt(cmap="deep", series=[-6000, 0], reverse=True)
 
 fig.grdimage(
     grid=grid,

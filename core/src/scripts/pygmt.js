@@ -357,11 +357,14 @@ export function generatePyGMT(state) {
 
   L.push('');
   L.push('# GMT >= 6 ships the cmocean colormaps natively, so the name resolves directly.');
+  L.push('# The on-screen tool maps colormap position 0 to the SHALLOW end, but the CPT');
+  L.push('# series here runs over elevation (deep = minimum), so the direction flag is');
+  L.push('# inverted relative to the on-screen "reverse" toggle.');
   const cptArgs = [
     `cmap=${pyStr(state.colormap)}`,
     `series=[${num(depthRange.min)}, ${num(depthRange.max)}]`,
   ];
-  if (state.reverse) cptArgs.push('reverse=True');
+  if (!state.reverse) cptArgs.push('reverse=True');
   L.push(`pygmt.makecpt(${cptArgs.join(', ')})`);
 
   L.push('');

@@ -265,13 +265,19 @@ export function generateRScript(state) {
 
   L.push('');
   L.push('# --- Bathymetry: ETOPO 2022 (15 arc-second) subset from NOAA ERDDAP ---------');
-  L.push('# griddap slice order is z[(south):(north)][(west):(east)].');
+  L.push('# griddap slice order is z[(south):stride:(north)][(west):stride:(east)].');
+  // ETOPO 2022 has 240 cells/degree; stride the request so the downloaded
+  // grid stays near ~2400 columns (a full 15" pull of a wide region would be
+  // hundreds of MB to GB).
+  const lonCells = (region.east - region.west) * 240;
+  const stride = Math.max(1, Math.ceil(lonCells / 2400));
+  L.push(`# stride ${stride} keeps the grid ≈${Math.round(lonCells / stride)} columns wide (raise for more detail).`);
   L.push('bathy_url <- paste0(');
   L.push(`  ${rStr(ERDDAP_BASE)},`);
   L.push(
     `  ${rStr(
-      `?z%5B(${num(region.south)}):(${num(region.north)})%5D` +
-        `%5B(${num(region.west)}):(${num(region.east)})%5D`,
+      `?z%5B(${num(region.south)}):${stride}:(${num(region.north)})%5D` +
+        `%5B(${num(region.west)}):${stride}:(${num(region.east)})%5D`,
     )}`,
   );
   L.push(')');
@@ -308,10 +314,11 @@ export function generateRScript(state) {
   parts.push(
     [
       `# cmocean ${rStr(state.colormap)} — the same perceptually uniform colormap as`,
-      '  # the on-screen preview.',
+      '  # the on-screen preview. The fill axis is elevation (deep = minimum), so the',
+      '  # direction is inverted relative to the on-screen "reverse" toggle.',
       '  scale_fill_gradientn(',
       `    colours = cmocean::cmocean(${rStr(state.colormap)}, direction = ${
-        state.reverse ? -1 : 1
+        state.reverse ? 1 : -1
       })(256),`,
       `    limits = c(${num(depthRange.min)}, ${num(depthRange.max)}),`,
       '    oob = scales::squish,',

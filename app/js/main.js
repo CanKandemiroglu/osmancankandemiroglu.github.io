@@ -498,6 +498,26 @@ function wireUI() {
     state.stations.label = e.target.checked;
   });
 
+  // cartographic furniture
+  $('fig-title').addEventListener('change', (e) => {
+    state.furniture.title = e.target.value.trim();
+  });
+  $('furn-scalebar').addEventListener('change', (e) => {
+    state.furniture.scaleBar = e.target.checked;
+    $('scalebar').style.display = e.target.checked ? '' : 'none';
+  });
+  $('furn-north').addEventListener('change', (e) => {
+    state.furniture.northArrow = e.target.checked;
+    $('north-arrow').style.display = e.target.checked ? '' : 'none';
+  });
+  $('furn-graticule').addEventListener('change', (e) => {
+    state.furniture.graticule = e.target.checked;
+    map.setLayoutProperty('graticule', 'visibility', e.target.checked ? 'visible' : 'none');
+  });
+  $('furn-inset').addEventListener('change', (e) => {
+    state.furniture.inset = e.target.checked;
+  });
+
   // journal + export
   $('journal-select').addEventListener('change', (e) => {
     state.journal.record = journals.find((j) => j.id === e.target.value) || null;
