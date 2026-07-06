@@ -25,6 +25,8 @@ spec (width in mm, dpi, format, font floor) as PNG/PDF/SVG, together with the
 | `/data/journals` | Journal figure-spec database (deterministic JSON, no AI) |
 | `/data/attrib` | Data-source attribution/citation registry |
 | `/scripts` | Dev generators + sample exported PyGMT/R scripts |
+| `/core/paper` | JOSS paper draft + submission checklist (Phase 2) |
+| `/manuscripts/lo-methods` | L&O: Methods manuscript draft (Phase 2) |
 | `/workers`, `/render` | Phase-3 placeholders (optional paid server render) |
 
 ### Reproducibility & citation
