@@ -1,0 +1,73 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Paged-document shell — a dependency-free stand-in for the Claude Design
+   <doc-page> component in its FLOWING mode: one text flow that the print
+   engine paginates, with a running footer that repeats on every sheet.
+
+   How the running footer works: the document prints inside a single-cell
+   table whose <thead>/<tfoot> are spacers. Browsers repeat thead/tfoot on
+   every printed page, so each sheet's content starts and ends inside the
+   page margin, and the footer itself is position:fixed within that band.
+
+   @page carries margin: 0 — that leaves Chrome no margin box to draw its
+   own date/URL/page-count furniture in. The visual margin lives on the
+   sheet's padding (horizontal) and the spacers (vertical) instead.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --page-width: 210mm;   /* A4; overridden for Letter below */
+  --page-margin: 0.8in;
+}
+html[data-paper="letter"] { --page-width: 8.5in; }
+
+@page { size: A4; margin: 0; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: #f5f5f4;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  padding: 48px 24px;
+}
+
+.sheet {
+  width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 var(--page-margin);
+  background: #fff;
+  border-radius: 7px;
+  box-shadow: 0 2px 10px rgba(20, 20, 19, 0.12);
+}
+
+.frame { width: 100%; border-collapse: collapse; }
+.frame td, .frame th { padding: 0; text-align: left; font-weight: inherit; }
+.hdr-space, .ftr-space { height: var(--page-margin); }
+
+/* The footer sits in normal flow on screen (once, at the foot of the sheet)
+   and becomes a repeating fixed band at print. */
+.running-footer { display: block; }
+
+@media print {
+  body { background: none; padding: 0; min-height: 0; }
+  .sheet { width: auto; border-radius: 0; box-shadow: none; }
+
+  .running-footer {
+    position: fixed; bottom: 0; left: 0; right: 0; margin: 0;
+    padding: 0 var(--page-margin) calc(var(--page-margin) * 0.45);
+  }
+
+  /* Break hygiene */
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  figure, pre, blockquote, img, svg, tr { break-inside: avoid; }
+  p, li { orphans: 3; widows: 3; }
+
+  /* Backgrounds and ink are part of the design, not decoration to drop. */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* "Contacts only" variant — the design's `detail` prop. */
+html[data-detail="contacts"] .ref-detail { display: none; }
+
+/* Screen-only affordance: the variant switcher never prints. */
+@media print { .no-print { display: none !important; } }
