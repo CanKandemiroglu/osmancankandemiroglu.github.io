@@ -1,0 +1,4 @@
+# Build output — regenerate with ./export-pdf.sh. The rendered document is an
+# application artefact, not site content: it belongs in the application folder
+# alongside the letter and CV, not in a repository that GitHub Pages serves.
+*.pdf
