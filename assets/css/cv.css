@@ -1,0 +1,405 @@
+/* =========================================================
+   Curriculum vitae — printable A4 document
+   ---------------------------------------------------------
+   Implementation of the Claude Design source
+   "Kandemiroglu Resume.dc.html" (Organic design system,
+   institutional retune) as a static, self-contained page.
+
+   The design's tokens are scoped to .cv-doc rather than
+   :root so they cannot leak into the site's own system in
+   assets/css/style.css. Fonts are self-hosted in
+   assets/fonts/ — no third-party request is made.
+   ========================================================= */
+
+/* ---------- Typefaces (SIL OFL 1.1 — see assets/fonts/LICENSE.md) ---------- */
+@font-face {
+  font-family: "Caprasimo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/caprasimo-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Caprasimo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/caprasimo-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url("../fonts/figtree-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url("../fonts/figtree-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ---------- Design tokens ----------
+   Organic's ground, type, radii and neutrals, with the
+   institutional retune the source applies over them: IOW /
+   Baltic blue as the primary voice, warm ochre as the
+   second — a blue/amber pair that stays separable under
+   deuteran-, protan- and tritanopia. */
+.cv-doc {
+  --color-bg: #fffdf8;
+  --color-surface: #fbf4e8;
+  --color-text: #201e1d;
+  --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
+
+  --color-neutral-600: #82796a;
+  --color-neutral-700: #645c50;
+
+  --color-accent: #1f6a8c;
+  --color-accent-100: #f2f8fb;
+  --color-accent-200: #cde5ef;
+  --color-accent-300: #9fcadd;
+  --color-accent-400: #5aa6c4;
+  --color-accent-500: #2b7fa5;
+  --color-accent-600: #1a6285;
+  --color-accent-700: #11506d;
+  --color-accent-800: #0c3b51;
+  --color-accent-900: #082a3a;
+
+  --color-accent-2: #a06b18;
+  --color-accent-2-100: #fbf3e2;
+  --color-accent-2-200: #f0dcb4;
+  --color-accent-2-700: #855511;
+  --color-accent-2-800: #5f3c0b;
+
+  --font-heading: "Caprasimo", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, sans-serif;
+  --radius-md: 16px;
+
+  /* A4, exactly — 1in = 96px, so these are the same numbers
+     the print engine lays the sheet out with. */
+  --page-w: 210mm;
+  --page-h: 297mm;
+}
+
+/* ---------- Screen: the desk ---------- */
+.cv-stage {
+  background: var(--bg-section);
+  padding: clamp(20px, 4vw, 44px) 0 clamp(40px, 6vw, 72px);
+  overflow-x: auto;
+}
+.cv-doc {
+  /* Set by the fit script on narrow viewports; `zoom` scales
+     layout (unlike transform), so nothing needs re-measuring.
+     Where it is unsupported the stage simply scrolls. */
+  zoom: var(--cv-zoom, 1);
+  width: max-content;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ---------- The sheet ----------
+   One .cv-page is exactly one A4 sheet, full-bleed, with
+   overflow hidden: the document is authored to fill the box,
+   so what is on screen is what prints. */
+.cv-page {
+  position: relative;
+  width: var(--page-w);
+  height: var(--page-h);
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: normal;
+  font-feature-settings: normal;
+  padding: 44px 46px 34px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 7px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.cv-page--1 { gap: 13px; }
+
+/* Page 2 carries more material than page 1 and, at the source's spacing,
+   runs ~40px past the bottom of an A4 sheet — where the fixed page box
+   clips it. Every word and every type size is the source's; the space is
+   taken back from page-2 white space alone, so the two sheets still read
+   as one document.
+
+   The levers below are all vertical white space, whose effect is the same
+   in every engine. Nudging horizontal measure instead (a narrower column
+   gutter, say) buys height only by changing where lines wrap, which is
+   precisely what differs between browsers — so the fit is kept clear of
+   it, and ~25px of slack is left for the rest. */
+.cv-page--2 {
+  gap: 4px;
+  padding-top: 30px;
+  padding-bottom: 20px;
+}
+.cv-page--2 .cv-sec { gap: 6px; }
+.cv-page--2 .cv-sec--roomy { gap: 8px; }
+.cv-page--2 .cv-bullets li:not(:last-child) { margin-bottom: 2px; }
+
+.cv-page a { color: var(--color-accent-700); text-decoration: none; }
+.cv-page a:hover { color: var(--color-accent); text-decoration: underline; }
+
+/* ---------- Header ---------- */
+.cv-head { display: flex; flex-direction: column; gap: 7px; }
+.cv-head__top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: start;
+}
+.cv-name {
+  font-family: var(--font-heading);
+  font-size: 33px;
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  color: var(--color-text);
+  margin: 0;
+}
+.cv-role {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent-700);
+  margin-top: 5px;
+}
+.cv-target {
+  background: var(--color-accent-200);
+  color: var(--color-accent-800);
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-size: 8.8px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.4;
+  max-width: 192px;
+}
+.cv-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 9.8px;
+  color: var(--color-neutral-700);
+}
+.cv-summary {
+  background: var(--color-accent-100);
+  border-radius: var(--radius-md);
+  padding: 9px 14px;
+  font-size: 10.6px;
+  line-height: 1.45;
+}
+.cv-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.cv-chip {
+  background: var(--color-accent-2-100);
+  color: var(--color-accent-2-800);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 8.6px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+/* ---------- Sections ---------- */
+.cv-sec { display: flex; flex-direction: column; gap: 7px; }
+.cv-sec--roomy { gap: 9px; }
+.cv-h2 {
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-accent-700);
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  margin: 0;
+  padding-bottom: 5px;
+  border-bottom: 1.5px solid var(--color-accent-300);
+}
+.cv-h2__note {
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-neutral-600);
+}
+
+/* ---------- Education / keyed lists ---------- */
+.cv-keyed {
+  display: grid;
+  margin: 0;
+  gap: 6px 14px;
+  align-items: start;
+  font-size: 10.3px;
+  grid-template-columns: 82px 1fr;
+}
+.cv-keyed dt,
+.cv-keyed dd { margin: 0; }
+.cv-keyed dt {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--color-accent-2-700);
+  letter-spacing: 0.03em;
+  padding-top: 1px;
+}
+.cv-keyed--tight {
+  grid-template-columns: 34px 1fr;
+  gap: 4px 10px;
+  font-size: 9.7px;
+}
+.cv-keyed--wide { grid-template-columns: 52px 1fr; gap: 4px 10px; font-size: 9.7px; }
+.cv-keyed--tight dt,
+.cv-keyed--wide dt { font-size: inherit; letter-spacing: normal; padding-top: 0; }
+
+/* ---------- Research entries ---------- */
+.cv-item__title { font-size: 11.5px; font-weight: 700; line-height: 1.3; }
+.cv-item__title-note {
+  font-weight: 400;
+  font-size: 9.4px;
+  font-style: italic;
+  color: var(--color-neutral-700);
+}
+.cv-item__meta {
+  font-size: 9.4px;
+  line-height: 1.35;
+  color: var(--color-neutral-700);
+  font-style: italic;
+  margin-top: 2px;
+}
+.cv-bullets {
+  list-style: disc;
+  margin: 5px 0 0;
+  padding-left: 13px;
+}
+.cv-bullets li:not(:last-child) { margin-bottom: 4px; }
+.cv-bullets--flush { margin-top: 0; font-size: 10.1px; }
+
+/* ---------- Methods ---------- */
+.cv-methods {
+  display: grid;
+  margin: 0;
+  grid-template-columns: 118px 1fr;
+  gap: 4px 14px;
+  align-items: start;
+  font-size: 10px;
+}
+.cv-methods dt,
+.cv-methods dd { margin: 0; }
+.cv-methods dt { font-weight: 700; color: var(--color-accent-2-700); }
+
+/* ---------- Paired columns ---------- */
+.cv-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+.cv-refs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  font-size: 9.4px;
+  line-height: 1.35;
+}
+
+/* ---------- Running foot ---------- */
+.cv-foot {
+  margin-top: auto;
+  padding-top: 7px;
+  border-top: 1px solid var(--color-divider);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 8.5px;
+  color: var(--color-neutral-600);
+}
+
+/* ---------- Page furniture (screen only) ---------- */
+.cv-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--gutter) clamp(20px, 3vw, 32px);
+}
+.cv-hint {
+  max-width: 62ch;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* ---------- Print ---------- */
+@media print {
+  @page { size: A4; margin: 0; }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  .nav,
+  .footer,
+  .cv-toolbar,
+  .cv-hint,
+  .page-head { display: none !important; }
+
+  .cv-stage {
+    padding: 0;
+    background: none;
+    overflow: visible;
+  }
+  .cv-doc {
+    zoom: 1 !important;
+    width: auto;
+    display: block;
+    gap: 0;
+  }
+  .cv-page {
+    width: var(--page-w);
+    height: var(--page-h);
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+    break-inside: avoid;
+  }
+  .cv-page + .cv-page { break-before: page; }
+
+  .cv-page a { text-decoration: none; }
+
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
