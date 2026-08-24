@@ -14,9 +14,15 @@
   // inset twice. Engine check, not browser check: navigator.vendor is
   // 'Apple Computer, Inc.' exactly for WebKit.
   if (/apple/i.test(navigator.vendor || '')) {
+    // Read the inset from the stylesheet rather than repeating it here —
+    // letter pages set their own --ltr-margin to fit their text on a page.
+    var inset =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--ltr-margin').trim() || '0.5in';
     var style = document.createElement('style');
     style.textContent =
-      '@media print{@page{size:A4;margin:0.5in 0}.sheet__vspace{height:0}}';
+      '@media print{@page{size:A4;margin:' + inset + ' 0}' +
+      '.sheet__vspace{height:0}}';
     document.head.appendChild(style);
   }
 })();
