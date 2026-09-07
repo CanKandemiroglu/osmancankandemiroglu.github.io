@@ -1,0 +1,35 @@
+# Copy to jobfinder.toml (git-ignored) and edit. Every key is optional.
+
+contact_email = "osmancankandemiroglu@proton.me"   # goes into the User-Agent
+min_delay_s = 2.0            # minimum seconds between requests to the same host
+timeout_s = 30
+max_pages = 5                # listing pages per paginated source and run
+stage2_max = 40              # max full-text fetches per run
+
+# Eligibility gate 1. Months of WissZeitVG entitlement left.
+# Leave commented out and the gate reports UNKNOWN (never a silent pass).
+# wisszeitvg_remaining_months = 0
+
+# Search scope words for the stage-1 keyword pre-filter (title + teaser).
+# These are search terms, not skills. Skills live only in profile.md.
+keywords = ["marine", "ocean", "sea ", "biogeochem", "geochem", "sediment",
+  "microbi", "phytoplankton", "lipid", "biomarker", "isotope", "coastal",
+  "estuar", "aquatic", "benthic", "pelagic", "polar", "arctic", "antarctic",
+  "carbon", "mass spectrom", "organic matter", "astrobiolog", "limnolog",
+  "paleo", "palaeo", "meer", "ozean", "meeres", "marin", "océan", "oceano", "geoq", "biogeoq", "mare "]
+
+# Requirement lines matching these are shown but not counted as essentials.
+generic_requirements = ["english", "communication", "team", "motivat",
+  "independen", "willing", "driving licen", "german language", "language skills",
+  "interpersonal", "presentation skills", "writing skills", "fieldwork at sea",
+  "sea-going", "seagoing", "cruise"]
+
+[scorer]
+mode = "keyword"             # "keyword" (free, default) or "api" (Anthropic, costs money)
+api_model = "claude-sonnet-5"
+api_max_calls = 30           # hard cap per run
+
+[sync]
+enabled = true
+remote = "origin"
+branch = "main"

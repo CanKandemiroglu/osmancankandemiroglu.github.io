@@ -1,0 +1,7 @@
+requests>=2.31
+beautifulsoup4>=4.12
+lxml>=5.0
+feedparser>=6.0
+pytest>=8.0
+# optional, only for the API scorer (default off):
+# anthropic>=0.40
