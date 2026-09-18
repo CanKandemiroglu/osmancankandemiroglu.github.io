@@ -334,6 +334,16 @@ h4 {
   }
 }
 
+/* "Coming soon" badge — same geometry as "New", calmer and never pulsing */
+.card--soon .card__eyebrow { padding-right: 104px; }
+.card__badge--soon {
+  color: var(--ink-mute);
+  background: var(--bg-section);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  animation: none;
+}
+
 /* ---------- Research article layout ---------- */
 .article {
   max-width: var(--maxw-prose);
